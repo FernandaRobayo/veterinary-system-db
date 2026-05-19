@@ -28,6 +28,9 @@ Flyway se conecta despues a `db_unab` para crear y versionar tablas, constraints
 ## Ejecutar migraciones
 ```bash
 docker compose run --rm flyway migrate
+
+docker compose run --rm flyway -baselineVersion=1 baseline
+
 ```
 
 ## Consultar estado
