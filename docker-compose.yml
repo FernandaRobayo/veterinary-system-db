@@ -1,0 +1,45 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-db_unab}
+      MYSQL_USER: ${MYSQL_USER:-veterinary}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-veterinary}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      veterinary-network:
+        aliases:
+          - veterinary-system-db
+
+  flyway:
+    image: flyway/flyway:10
+    profiles:
+      - tools
+    depends_on:
+      - db
+    environment:
+      FLYWAY_URL: ${FLYWAY_URL:-jdbc:mysql://db:3306/${MYSQL_DATABASE:-db_unab}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      FLYWAY_USER: ${FLYWAY_USER:-${MYSQL_USER:-veterinary}}
+      FLYWAY_PASSWORD: ${FLYWAY_PASSWORD:-${MYSQL_PASSWORD:-veterinary}}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_VALIDATE_MIGRATION_NAMING: "true"
+      FLYWAY_BASELINE_ON_MIGRATE: "false"
+    volumes:
+      - ./db/migration:/flyway/sql:ro
+    networks:
+      veterinary-network:
+        aliases:
+          - veterinary-system-flyway
+
+volumes:
+  mysql_data:
+
+networks:
+  veterinary-network:
+    name: veterinary-system-network
+    external: true
